@@ -7,12 +7,13 @@ public class Main {
         System.out.println("D - deal cards");
         System.out.println("H - hit");
         System.out.println("S - stand");
+        System.out.println("score - show score");
         System.out.println("quit - quit game");
         System.out.print("Please enter your name: ");
     }
 
     private static void printScore(Game game){
-        System.out.printf("%s %d - %d Dealer\n", game.getPlayerName(), game.getPlayerScore(), game.getDealerScore());
+        System.out.printf("%s: %d wins\n", game.getPlayerName(), game.getPlayerScore());
     }
 
     private static void printHands(Game game){
@@ -47,24 +48,28 @@ public class Main {
 
     private static void startHand(Game game, Scanner in){
         dealCards(game);
-        String command;
+        String command = "";
         do {
-            command = in.nextLine().trim();
-            switch (command){
-                case "D" -> System.out.println("You are already in a hand");
-                case "quit" -> System.out.println("You can't quit in the middle of a hand");
-                case "H" -> handleHit(game);
-                case "S" -> doNothing();
-                default -> System.out.println("Invalid Command");
+            if (!game.isPlayerBlackjack()){
+                command = in.nextLine().trim();
+                switch (command){
+                    case "D" -> System.out.println("You are already in a hand");
+                    case "quit" -> System.out.println("You can't quit in the middle of a hand");
+                    case "H" -> handleHit(game);
+                    case "S" -> doNothing();
+                    case "score" -> System.out.println("You can't do that right now");
+                    default -> System.out.println("Invalid Command");
+                }
             }
         } while (!command.equals("S") && game.canPlayerHit());
-        if (game.didPlayerBust()){
+        if (game.isPlayerBlackjack()) {
+            System.out.println("BLACKJACK!");
+            System.out.printf("%s wins\n",game.getPlayerName());
+            game.handWon();
+        } else if (game.didPlayerBust()){
             System.out.println("Your hand value exceeds 21");
             System.out.println("Dealer wins");
-            game.handLost();
-            printScore(game);
-        }
-        else {
+        } else {
             while(game.canDealerHit())
                 game.getDealerCard();
             printHands(game);
@@ -78,7 +83,6 @@ public class Main {
                 System.out.printf("%s wins\n", game.getPlayerName());
             else
                 System.out.println("Dealer wins");
-            printScore(game);
         }
     }
 
@@ -96,6 +100,7 @@ public class Main {
             switch (command){
                 case "D" -> startHand(game, in);
                 case "quit" -> handleQuit(game);
+                case "score" -> printScore(game);
                 case "H", "S" -> System.out.println("Please start the hand first");
                 default -> System.out.println("Invalid Command");
             }
